@@ -1,0 +1,212 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* global document, console */
+
+declare const gsap: any;
+
+export const team = (): void => {
+  const attrKey = 'data-team';
+  const attrKeyImage = 'data-team-image';
+  const attrValues = {
+    item: 'item',
+    popup: 'popup',
+    popupTrigger: 'popup-trigger',
+    popupClose: 'popup-close',
+    imageStart: 'start',
+    imageEnd: 'end',
+  };
+
+  const items = document.querySelectorAll(`[${attrKey}=${attrValues.item}]`);
+
+  [...items].forEach((item) => {
+    const popup = item.querySelector(`[${attrKey}=${attrValues.popup}]`) as HTMLElement;
+    const popupTriggers = item.querySelectorAll(`[${attrKey}=${attrValues.popupTrigger}]`);
+    const popupClose = item.querySelector(`[${attrKey}=${attrValues.popupClose}]`) as HTMLElement;
+
+    const startContainer = item.querySelector(
+      `[${attrKeyImage}=${attrValues.imageStart}]`
+    ) as HTMLElement;
+    const endContainer = item.querySelector(
+      `[${attrKeyImage}=${attrValues.imageEnd}]`
+    ) as HTMLElement;
+
+    // Get the actual image element from the start container
+    const image = startContainer?.querySelector('img') as HTMLImageElement;
+
+    if (
+      !popup ||
+      !popupTriggers.length ||
+      !popupClose ||
+      !startContainer ||
+      !endContainer ||
+      !image
+    ) {
+      return;
+    }
+
+    let isAnimating = false;
+
+    popupTriggers.forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        try {
+          // Get the bounds of the image in its current position
+          const startBounds = image.getBoundingClientRect();
+
+          // Prevent body scrolling
+          document.body.style.overflow = 'hidden';
+
+          // Show popup to calculate end position
+          popup.style.display = 'flex';
+          popup.style.opacity = '1';
+
+          // Get the bounds of where the image should end up
+          const endBounds = endContainer.getBoundingClientRect();
+
+          // Create a clone of the image for animation
+          const clone = image.cloneNode(true) as HTMLImageElement;
+
+          // Reset clone styles and position at start position
+          clone.style.cssText = '';
+          clone.style.position = 'fixed';
+          clone.style.left = startBounds.left + 'px';
+          clone.style.top = startBounds.top + 'px';
+          clone.style.width = startBounds.width + 'px';
+          clone.style.height = startBounds.height + 'px';
+          clone.style.zIndex = '9999';
+          clone.style.margin = '0';
+          clone.style.padding = '0';
+          clone.style.transform = 'none';
+          clone.style.objectFit = 'cover';
+          document.body.appendChild(clone);
+
+          // Hide original image
+          image.style.opacity = '0';
+
+          // Move the actual image to the end container and set it to fill
+          endContainer.appendChild(image);
+          image.style.opacity = '1';
+          image.style.visibility = 'hidden';
+          image.style.width = '100%';
+          image.style.height = '100%';
+          image.style.objectFit = 'cover';
+
+          // Animate clone to end position using fromTo
+          gsap.fromTo(
+            clone,
+            {
+              // Starting position (grid position)
+              left: startBounds.left,
+              top: startBounds.top,
+              width: startBounds.width,
+              height: startBounds.height,
+            },
+            {
+              // Ending position (popup position)
+              duration: 0.8,
+              left: endBounds.left,
+              top: endBounds.top,
+              width: endBounds.width,
+              height: endBounds.height,
+              ease: 'power2.inOut',
+              onComplete: () => {
+                // Remove clone and show actual image
+                clone.remove();
+                image.style.visibility = 'visible';
+                isAnimating = false;
+              },
+            }
+          );
+        } catch (error) {
+          console.error('Error during opening animation:', error);
+          isAnimating = false;
+          popup.style.display = 'flex';
+          popup.style.opacity = '1';
+          // Ensure body overflow is set even on error
+          document.body.style.overflow = 'hidden';
+        }
+      });
+    });
+
+    popupClose.addEventListener('click', () => {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      try {
+        // The image should now be in the endContainer
+        const currentImage = endContainer.querySelector('img') as HTMLImageElement;
+        if (!currentImage) {
+          popup.style.display = 'none';
+          isAnimating = false;
+          return;
+        }
+
+        // Get bounds BEFORE hiding anything
+        const endBounds = currentImage.getBoundingClientRect();
+        const startBounds = startContainer.getBoundingClientRect();
+
+        // Create clone for animation
+        const clone = currentImage.cloneNode(true) as HTMLImageElement;
+        clone.style.cssText = '';
+        clone.style.position = 'fixed';
+        clone.style.zIndex = '9999';
+        clone.style.pointerEvents = 'none';
+        clone.style.margin = '0';
+        clone.style.padding = '0';
+        clone.style.transform = 'none';
+        clone.style.objectFit = 'cover';
+        document.body.appendChild(clone);
+
+        // Hide image and popup
+        currentImage.style.visibility = 'hidden';
+        popup.style.display = 'none';
+
+        // Move the actual image back to start container and reset size
+        startContainer.appendChild(currentImage);
+        currentImage.style.width = '';
+        currentImage.style.height = '';
+        currentImage.style.objectFit = '';
+
+        // Use fromTo for explicit control over start and end states
+        gsap.fromTo(
+          clone,
+          {
+            // Starting position (popup position)
+            left: endBounds.left,
+            top: endBounds.top,
+            width: endBounds.width,
+            height: endBounds.height,
+          },
+          {
+            // Ending position (grid position)
+            duration: 0.8,
+            left: startBounds.left,
+            top: startBounds.top,
+            width: startBounds.width,
+            height: startBounds.height,
+            ease: 'power2.inOut',
+            onComplete: () => {
+              clone.remove();
+              currentImage.style.visibility = 'visible';
+              currentImage.style.opacity = '1';
+              // Re-enable body scrolling after animation completes
+              document.body.style.overflow = '';
+              isAnimating = false;
+            },
+          }
+        );
+      } catch (error) {
+        console.error('Error during closing animation:', error);
+        popup.style.display = 'none';
+        if (image) {
+          image.style.opacity = '1';
+          image.style.visibility = 'visible';
+        }
+        // Re-enable body scrolling on error
+        document.body.style.overflow = '';
+        isAnimating = false;
+      }
+    });
+  });
+};
