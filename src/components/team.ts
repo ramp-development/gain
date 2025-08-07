@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* global document, console */
-
-declare const gsap: any;
-
 export const team = (): void => {
   const nav = document.querySelector<HTMLElement>('.nav_component');
 
