@@ -4,6 +4,8 @@
 declare const gsap: any;
 
 export const team = (): void => {
+  const nav = document.querySelector<HTMLElement>('.nav_component');
+
   const attrKey = 'data-team';
   const attrKeyImage = 'data-team-image';
   const attrValues = {
@@ -57,9 +59,9 @@ export const team = (): void => {
           // Prevent body scrolling
           document.body.style.overflow = 'hidden';
 
-          // Show popup to calculate end position
+          // Show popup with opacity 0 to calculate end position
           popup.style.display = 'flex';
-          popup.style.opacity = '1';
+          popup.style.opacity = '0';
 
           // Get the bounds of where the image should end up
           const endBounds = endContainer.getBoundingClientRect();
@@ -92,8 +94,38 @@ export const team = (): void => {
           image.style.height = '100%';
           image.style.objectFit = 'cover';
 
-          // Animate clone to end position using fromTo
-          gsap.fromTo(
+          // Create timeline for coordinated animations
+          const tl = gsap.timeline();
+
+          // Animate popup opacity from 0 to 1
+          tl.to(
+            popup,
+            {
+              opacity: 1,
+              duration: 0.8,
+              ease: 'power2.inOut',
+            },
+            0
+          );
+
+          // Animate nav opacity from 1 to 0
+          if (nav) {
+            tl.to(
+              nav,
+              {
+                opacity: 0,
+                duration: 0.8,
+                ease: 'power2.inOut',
+                onComplete: () => {
+                  nav.style.display = 'none';
+                },
+              },
+              0
+            );
+          }
+
+          // Animate clone to end position
+          tl.fromTo(
             clone,
             {
               // Starting position (grid position)
@@ -116,7 +148,8 @@ export const team = (): void => {
                 image.style.visibility = 'visible';
                 isAnimating = false;
               },
-            }
+            },
+            0 // Start at the same time as popup fade
           );
         } catch (error) {
           console.error('Error during opening animation:', error);
@@ -158,9 +191,8 @@ export const team = (): void => {
         clone.style.objectFit = 'cover';
         document.body.appendChild(clone);
 
-        // Hide image and popup
+        // Hide image but keep popup visible for fade animation
         currentImage.style.visibility = 'hidden';
-        popup.style.display = 'none';
 
         // Move the actual image back to start container and reset size
         startContainer.appendChild(currentImage);
@@ -168,8 +200,48 @@ export const team = (): void => {
         currentImage.style.height = '';
         currentImage.style.objectFit = '';
 
-        // Use fromTo for explicit control over start and end states
-        gsap.fromTo(
+        // Create timeline for coordinated animations
+        const tl = gsap.timeline({
+          onComplete: () => {
+            clone.remove();
+            currentImage.style.visibility = 'visible';
+            currentImage.style.opacity = '1';
+            popup.style.display = 'none';
+            // Re-enable body scrolling after animation completes
+            document.body.style.overflow = '';
+            isAnimating = false;
+          },
+        });
+
+        // Animate popup opacity from 1 to 0
+        tl.to(
+          popup,
+          {
+            opacity: 0,
+            duration: 0.8,
+            ease: 'power2.inOut',
+          },
+          0
+        );
+
+        // Animate nav opacity from 0 to 1
+        if (nav) {
+          tl.to(
+            nav,
+            {
+              onStart: () => {
+                nav.style.removeProperty('display');
+              },
+              opacity: 1,
+              duration: 0.8,
+              ease: 'power2.inOut',
+            },
+            0
+          );
+        }
+
+        // Animate clone back to start position
+        tl.fromTo(
           clone,
           {
             // Starting position (popup position)
@@ -186,15 +258,8 @@ export const team = (): void => {
             width: startBounds.width,
             height: startBounds.height,
             ease: 'power2.inOut',
-            onComplete: () => {
-              clone.remove();
-              currentImage.style.visibility = 'visible';
-              currentImage.style.opacity = '1';
-              // Re-enable body scrolling after animation completes
-              document.body.style.overflow = '';
-              isAnimating = false;
-            },
-          }
+          },
+          0 // Start at the same time as popup fade
         );
       } catch (error) {
         console.error('Error during closing animation:', error);
