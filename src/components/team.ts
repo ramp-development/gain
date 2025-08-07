@@ -1,5 +1,5 @@
 export const team = (): void => {
-  const nav = document.querySelector<HTMLElement>('.nav_component');
+  const navs = document.querySelectorAll<HTMLElement>('.nav_component');
 
   const attrKey = 'data-team';
   const attrKeyImage = 'data-team-image';
@@ -104,15 +104,17 @@ export const team = (): void => {
           );
 
           // Animate nav opacity from 1 to 0
-          if (nav) {
+          if (navs) {
             tl.to(
-              nav,
+              navs,
               {
                 opacity: 0,
                 duration: 0.8,
                 ease: 'power2.inOut',
                 onComplete: () => {
-                  nav.style.display = 'none';
+                  navs.forEach((nav) => {
+                    nav.style.display = 'none';
+                  });
                 },
               },
               0
@@ -220,12 +222,14 @@ export const team = (): void => {
         );
 
         // Animate nav opacity from 0 to 1
-        if (nav) {
+        if (navs) {
           tl.to(
-            nav,
+            navs,
             {
               onStart: () => {
-                nav.style.removeProperty('display');
+                navs.forEach((nav) => {
+                  nav.style.removeProperty('display');
+                });
               },
               opacity: 1,
               duration: 0.8,

@@ -31,6 +31,7 @@ export const intro = (): void => {
       timeline.from(eyebrowMarker, {
         opacity: 0,
         scale: 0.8,
+        clearProps: 'all',
       });
     }
 
@@ -40,6 +41,7 @@ export const intro = (): void => {
         {
           opacity: 0,
           scale: 0.8,
+          clearProps: 'all',
         },
         '<'
       );
@@ -64,6 +66,7 @@ export const intro = (): void => {
         {
           yPercent: '0',
           stagger: 0.05,
+          clearProps: 'all',
         },
         '<0.5'
       );
@@ -75,6 +78,7 @@ export const intro = (): void => {
         {
           opacity: 0,
           y: '2rem',
+          clearProps: 'all',
         },
         '<0.5'
       );
@@ -87,6 +91,7 @@ export const intro = (): void => {
           opacity: 0,
           y: '2rem',
           stagger: 0.1,
+          clearProps: 'all',
         },
         '<0.5'
       );
