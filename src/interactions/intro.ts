@@ -12,7 +12,7 @@ export const intro = (): void => {
     const timeline = gsap.timeline({
       scrollTrigger: {
         trigger: contain,
-        start: 'top center',
+        start: 'top 75%',
         once: true,
       },
       defaults: {
@@ -100,7 +100,6 @@ export const intro = (): void => {
 
   // Listen for gsapRefresh event
   document.addEventListener('gsapRefresh', () => {
-    // Refresh all ScrollTrigger instances
     scrollTriggers.forEach((st) => {
       st.refresh();
     });
