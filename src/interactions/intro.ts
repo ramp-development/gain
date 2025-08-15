@@ -93,7 +93,7 @@ export const intro = (): void => {
           stagger: 0.1,
           clearProps: 'all',
         },
-        '<0.5'
+        '<0'
       );
     }
   }
